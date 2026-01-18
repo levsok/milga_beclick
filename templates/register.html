@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="page-center">
+    <div class="row justify-content-center w-100">
+      <div class="col-lg-6">
+        <div class="card-soft p-4">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="icon-badge"><i class="bi bi-person-plus"></i></div>
+            <div>
+              <h2 class="fw-bold mb-1">פתיחת חשבון</h2>
+              <p class="text-muted mb-0">כמה פרטים קצרים ואפשר להתחיל.</p>
+            </div>
+          </div>
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.first_name.label(class="form-label") }}
+            {{ form.first_name(class="form-control", placeholder="לדוגמה: נעמה") }}
+            {% for error in form.first_name.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.last_name.label(class="form-label") }}
+            {{ form.last_name(class="form-control", placeholder="לדוגמה: כהן") }}
+            {% for error in form.last_name.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.phone.label(class="form-label") }}
+            {{ form.phone(class="form-control", placeholder="05XXXXXXXX או +9725XXXXXXXX") }}
+            {% for error in form.phone.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="name@example.com") }}
+            {% for error in form.email.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+            <div class="helper-text mt-1">לפחות 10 תווים, אות גדולה וקטנה, ספרה ותו מיוחד.</div>
+            {% for error in form.password.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control") }}
+            {% for error in form.confirm_password.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <button type="submit" class="btn btn-primary w-100">{{ form.submit.label.text }}</button>
+        </form>
+        <p class="mt-3 mb-0">כבר רשום? <a href="{{ url_for('login') }}">התחבר כאן</a></p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

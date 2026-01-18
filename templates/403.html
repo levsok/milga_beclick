@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card-soft p-5 text-center">
+    <img class="under-construction-img mb-3" src="{{ url_for('static', filename='img/crying_cat.png') }}" alt="חתול בוכה">
+    <h1 class="fw-bold">403 – הדף עדיין בבנייה</h1>
+    <p class="mt-3 text-muted">אנחנו עובדים על הפיצ'ר הזה כדי שלא תפספס אף מלגה.</p>
+    <a class="btn btn-primary mt-3" href="{{ url_for('dashboard') }}">חזרה לאזור האישי</a>
+  </div>
+{% endblock %}

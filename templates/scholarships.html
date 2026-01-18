@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">מלגות זמינות</h2>
+    <p class="text-muted mb-0">כל המלגות שמתפרסמות במערכת, מסודרות לפי מועדים.</p>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-info">{{ error }}</div>
+  {% endif %}
+
+  {% if scholarships %}
+    <div class="scholarship-toolbar scholarship-search card-soft mb-4">
+      <div class="d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between scholarship-search-header">
+        <div>
+          <h5 class="fw-bold mb-1">חיפוש מהיר</h5>
+          <div class="text-muted small">חפשו לפי שם, תגיות או פרטים מתוך המלגה.</div>
+        </div>
+        <div class="search-input-group">
+          <input id="scholarshipSearch" type="search" class="form-control search-input" placeholder="לדוגמה: מצוינות, הנדסה, פריפריה">
+          <button id="clearSearch" type="button" class="btn btn-outline-primary btn-sm">ניקוי</button>
+        </div>
+      </div>
+      <div id="searchMeta" class="search-meta text-muted small mt-3"></div>
+    </div>
+    <div class="scholarship-list">
+      {% for item in scholarships %}
+        <div class="scholarship-card" data-search="{{ item.title }} {% if item.tags %}{{ item.tags|join(' ') }}{% endif %} {% if item.fields %}{{ item.fields|map(attribute='name')|join(' ') }} {{ item.fields|map(attribute='value')|join(' ') }}{% endif %}">
+          <div class="scholarship-card-body">
+            <div class="card-header-row">
+              <h5 class="fw-bold mb-0">{{ item.title }}</h5>
+              {% if item.url %}
+                <a class="btn btn-outline-primary btn-sm" href="{{ item.url }}" target="_blank" rel="noopener">לקישור</a>
+              {% endif %}
+            </div>
+            {% if item.tags %}
+              <div class="mt-2 d-flex flex-wrap gap-2">
+                {% for tag in item.tags %}
+                  <span class="badge text-bg-light scholarship-tag">{{ tag }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% if item.fields %}
+              <div class="scholarship-fields mt-3">
+                {% for field in item.fields %}
+                  <div class="scholarship-field">
+                    <span class="field-name">{{ field.name }}:</span>
+                    <span class="field-value">{{ field.value }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          {% if item.image %}
+            <div class="scholarship-card-media">
+              <img src="{{ url_for('static', filename=item.image) }}" alt="תמונה של {{ item.title }}" loading="lazy">
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <div id="noResults" class="alert alert-info mt-3 d-none">לא נמצאו מלגות בהתאם לחיפוש.</div>
+  {% elif not error %}
+    <div class="alert alert-info">לא נמצאו מלגות להצגה כרגע.</div>
+  {% endif %}
+
+  <script>
+    const searchInput = document.getElementById("scholarshipSearch");
+    const clearButton = document.getElementById("clearSearch");
+    const cards = Array.from(document.querySelectorAll(".scholarship-card"));
+    const meta = document.getElementById("searchMeta");
+    const noResults = document.getElementById("noResults");
+
+    function updateResults() {
+      const term = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      cards.forEach((card) => {
+        const haystack = (card.dataset.search || "").toLowerCase();
+        const match = !term || haystack.includes(term);
+        card.classList.toggle("d-none", !match);
+        if (match) {
+          visible += 1;
+        }
+      });
+      meta.textContent = term
+        ? `נמצאו ${visible} מלגות תואמות`
+        : `סה\"כ ${cards.length} מלגות זמינות`;
+      noResults.classList.toggle("d-none", visible !== 0 || !term);
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", updateResults);
+      clearButton.addEventListener("click", () => {
+        searchInput.value = "";
+        updateResults();
+        searchInput.focus();
+      });
+      updateResults();
+    }
+  </script>
+{% endblock %}

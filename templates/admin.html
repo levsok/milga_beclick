@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">לוח ניהול</h2>
+    <p class="text-muted mb-0">גישה מלאה לנתוני משתמשים, פניות ותהליך בחירת מלגות.</p>
+  </div>
+
+  <div class="card-soft p-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <h5 class="fw-bold mb-1">בדיקת אינטגרציה עם Make</h5>
+        <div class="text-muted small">שליחת אירוע בדיקה כדי לוודא שהוובהוק עובד.</div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <form method="post" action="{{ url_for('admin_test_make') }}">
+          <button type="submit" class="btn btn-outline-primary">שליחת בדיקה</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_run_digest') }}">
+          <button type="submit" class="btn btn-primary">הרצת דיג'סט יומי</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-soft p-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+      <h5 class="fw-bold mb-0">משתמשים</h5>
+      <a class="btn btn-outline-primary" href="{{ url_for('admin_export_users') }}">ייצוא משתמשים לאקסל</a>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>מזהה</th>
+            <th>שם מלא</th>
+            <th>טלפון</th>
+            <th>אימייל</th>
+            <th>נרשם בתאריך</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td>{{ user.id }}</td>
+              <td><a href="{{ url_for('admin_user_profile', user_id=user.id) }}">{{ user.first_name }} {{ user.last_name }}</a></td>
+              <td>{{ user.phone }}</td>
+              <td><a href="{{ url_for('admin_user_profile', user_id=user.id) }}">{{ user.email }}</a></td>
+              <td>{{ user.created_at|datetime }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-muted">אין משתמשים להצגה.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card-soft p-4 mb-4">
+    <h5 class="fw-bold mb-3">התעניינות במלגות</h5>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>משתמש</th>
+            <th>שם המלגה</th>
+            <th>תחום עניין</th>
+            <th>הוגשה בקשה?</th>
+            <th>הערות</th>
+            <th>נשלח בתאריך</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in submissions %}
+            <tr>
+              <td>{{ submission.user.first_name }} {{ submission.user.last_name }}</td>
+              <td>{{ submission.scholarship_name }}</td>
+              <td>{{ submission.interest_area }}</td>
+              <td>{{ "כן" if submission.has_submitted else "לא" }}</td>
+              <td>{{ submission.notes or "-" }}</td>
+              <td>{{ submission.created_at|datetime }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="text-muted">אין נתונים להצגה.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card-soft p-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+      <div>
+        <h5 class="fw-bold mb-1">אנליטיקות מלגות</h5>
+        <div class="text-muted small">נתוני מעורבות והתקדמות לפי מלגה.</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label class="text-muted small" for="analyticsRange">טווח זמן</label>
+        <select id="analyticsRange" class="form-select analytics-range">
+          <option value="all">כל הזמן</option>
+          <option value="7">7 ימים</option>
+          <option value="30">30 ימים</option>
+          <option value="90">90 ימים</option>
+        </select>
+      </div>
+    </div>
+    {% if scholarships_error %}
+      <div class="alert alert-info">{{ scholarships_error }}</div>
+    {% endif %}
+    {% if scholarships_catalog %}
+      <div class="scholarship-analytics-grid">
+        {% for item in scholarships_catalog %}
+          <div class="scholarship-analytics-card">
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+              <div>
+                <div class="fw-semibold">{{ item.title }}</div>
+                {% if item.tags %}
+                  <div class="mt-2 d-flex flex-wrap gap-2">
+                    {% for tag in item.tags %}
+                      <span class="badge text-bg-light scholarship-tag">{{ tag }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              {% if item.url %}
+                <a class="btn btn-outline-primary btn-sm" href="{{ item.url }}" target="_blank" rel="noopener">לקישור</a>
+              {% endif %}
+            </div>
+            <details class="analytics-details mt-3" data-scholarship-id="{{ item.id }}">
+              <summary>Analytics</summary>
+              <div class="analytics-body" data-scholarship-id="{{ item.id }}">
+                <div class="analytics-status text-muted small">פתח להצגת נתונים.</div>
+                <div class="analytics-kpis d-none">
+                  <div class="kpi-card">
+                    <div class="kpi-label">מעוניינים</div>
+                    <div class="kpi-value" data-kpi="interested">0</div>
+                  </div>
+                  <div class="kpi-card">
+                    <div class="kpi-label">הגישו</div>
+                    <div class="kpi-value" data-kpi="applied">0</div>
+                  </div>
+                  <div class="kpi-card">
+                    <div class="kpi-label">התקבלו</div>
+                    <div class="kpi-value" data-kpi="accepted">0</div>
+                  </div>
+                  <div class="kpi-card">
+                    <div class="kpi-label">לא מעוניינים</div>
+                    <div class="kpi-value" data-kpi="not_interested">0</div>
+                  </div>
+                </div>
+                <div class="analytics-rates d-none">
+                  <div class="rate-item">הגשות מתוך מעוניינים: <span data-rate="applied_rate">0%</span></div>
+                  <div class="rate-item">קבלות מתוך מגישים: <span data-rate="accepted_rate">0%</span></div>
+                </div>
+                <div class="analytics-charts d-none">
+                  <div class="chart-card">
+                    <canvas data-chart="interest" height="140"></canvas>
+                    <div class="chart-label">מעוניינים מול לא מעוניינים</div>
+                  </div>
+                  <div class="chart-card">
+                    <canvas data-chart="applied" height="140"></canvas>
+                    <div class="chart-label">הגישו מול לא הגישו</div>
+                  </div>
+                  <div class="chart-card">
+                    <canvas data-chart="accepted" height="140"></canvas>
+                    <div class="chart-label">התקבלו מול לא התקבלו</div>
+                  </div>
+                </div>
+                <div class="analytics-empty text-muted small d-none">אין נתונים להצגה עבור הטווח שנבחר.</div>
+              </div>
+            </details>
+          </div>
+        {% endfor %}
+      </div>
+    {% elif not scholarships_error %}
+      <div class="text-muted small">אין מלגות להצגה.</div>
+    {% endif %}
+  </div>
+
+  <div class="card-soft p-4">
+    <h5 class="fw-bold mb-3">פניות צור קשר</h5>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>שם מלא</th>
+            <th>אימייל</th>
+            <th>טלפון</th>
+            <th>נושא</th>
+            <th>הודעה</th>
+            <th>IP</th>
+            <th>נשלח בתאריך</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inquiry in inquiries %}
+            <tr>
+              <td>{{ inquiry.full_name }}</td>
+              <td>{{ inquiry.email }}</td>
+              <td>{{ inquiry.phone }}</td>
+              <td>{{ inquiry.subject }}</td>
+              <td>{{ inquiry.message }}</td>
+              <td>{{ inquiry.ip }}</td>
+              <td>{{ inquiry.created_at|datetime }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="7" class="text-muted">אין פניות להצגה.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    (function () {
+      var rangeSelect = document.getElementById("analyticsRange");
+      var detailsList = Array.from(document.querySelectorAll(".analytics-details"));
+      if (!detailsList.length) {
+        return;
+      }
+      var chartInstances = new Map();
+      if (typeof Chart === "undefined") {
+        detailsList.forEach(function (details) {
+          var status = details.querySelector(".analytics-status");
+          if (status) {
+            status.textContent = "ספריית הגרפים לא נטענה.";
+          }
+        });
+        return;
+      }
+
+      function buildChart(canvas, labels, values, colors) {
+        var existing = chartInstances.get(canvas);
+        if (existing) {
+          existing.data.labels = labels;
+          existing.data.datasets[0].data = values;
+          existing.data.datasets[0].backgroundColor = colors;
+          existing.update();
+          return;
+        }
+        var chart = new Chart(canvas, {
+          type: "pie",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true },
+              },
+            },
+          },
+        });
+        chartInstances.set(canvas, chart);
+      }
+
+      function setText(root, selector, value) {
+        var node = root.querySelector(selector);
+        if (node) {
+          node.textContent = value;
+        }
+      }
+
+      function updateAnalytics(root, data) {
+        var counts = data.counts || {};
+        var interested = counts.interested || 0;
+        var applied = counts.applied || 0;
+        var accepted = counts.accepted || 0;
+        var notInterested = counts.not_interested || 0;
+        var totalSignals = interested + applied + accepted + notInterested;
+
+        root.querySelector(".analytics-status").textContent =
+          data.source === "events"
+            ? "מבוסס על אירועים בטווח שנבחר."
+            : "מבוסס על סטטוס נוכחי במערכת.";
+
+        root.querySelector(".analytics-kpis").classList.toggle("d-none", totalSignals === 0);
+        root.querySelector(".analytics-rates").classList.toggle("d-none", totalSignals === 0);
+        root.querySelector(".analytics-charts").classList.toggle("d-none", totalSignals === 0);
+        root.querySelector(".analytics-empty").classList.toggle("d-none", totalSignals !== 0);
+
+        setText(root, '[data-kpi="interested"]', interested);
+        setText(root, '[data-kpi="applied"]', applied);
+        setText(root, '[data-kpi="accepted"]', accepted);
+        setText(root, '[data-kpi="not_interested"]', notInterested);
+        setText(root, '[data-rate="applied_rate"]', (data.rates.applied_rate || 0) + "%");
+        setText(root, '[data-rate="accepted_rate"]', (data.rates.accepted_rate || 0) + "%");
+
+        if (totalSignals === 0) {
+          return;
+        }
+
+        var interestCanvas = root.querySelector('[data-chart="interest"]');
+        var appliedCanvas = root.querySelector('[data-chart="applied"]');
+        var acceptedCanvas = root.querySelector('[data-chart="accepted"]');
+
+        if (interestCanvas) {
+          buildChart(
+            interestCanvas,
+            ["מעוניינים", "לא מעוניינים"],
+            [interested, notInterested],
+            ["#14b8a6", "#cbd5f5"]
+          );
+        }
+        if (appliedCanvas) {
+          buildChart(
+            appliedCanvas,
+            ["הגישו", "לא הגישו"],
+            [applied, Math.max(interested - applied, 0)],
+            ["#38bdf8", "#e2e8f0"]
+          );
+        }
+        if (acceptedCanvas) {
+          buildChart(
+            acceptedCanvas,
+            ["התקבלו", "לא התקבלו"],
+            [accepted, Math.max(applied - accepted, 0)],
+            ["#22c55e", "#e2e8f0"]
+          );
+        }
+      }
+
+      function loadAnalytics(details) {
+        var body = details.querySelector(".analytics-body");
+        var scholarshipId = details.dataset.scholarshipId;
+        var days = rangeSelect ? rangeSelect.value : "all";
+        if (body.dataset.loadedFor === days) {
+          return;
+        }
+        body.dataset.loadedFor = days;
+        body.classList.add("is-loading");
+        body.querySelector(".analytics-status").textContent = "טוען נתונים...";
+        fetch("/admin/scholarships/" + scholarshipId + "/analytics?days=" + days)
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            updateAnalytics(body, data);
+          })
+          .catch(function () {
+            body.querySelector(".analytics-status").textContent = "לא ניתן לטעון נתונים כרגע.";
+          })
+          .finally(function () {
+            body.classList.remove("is-loading");
+          });
+      }
+
+      detailsList.forEach(function (details) {
+        details.addEventListener("toggle", function () {
+          if (details.open) {
+            loadAnalytics(details);
+          }
+        });
+      });
+
+      if (rangeSelect) {
+        rangeSelect.addEventListener("change", function () {
+          detailsList.forEach(function (details) {
+            var body = details.querySelector(".analytics-body");
+            if (body) {
+              body.dataset.loadedFor = "";
+            }
+            if (details.open) {
+              loadAnalytics(details);
+            }
+          });
+        });
+      }
+    })();
+  </script>
+{% endblock %}

@@ -1,0 +1,76 @@
+Project Summary - Flask + Make Integration + Analytics + Digest
+
+What was built
+- Flask app extended with Make.com webhook integration using requests.
+- Strict JSON contract for webhook payloads with fixed top-level keys:
+  email, event_title, is_test, subject, html.
+- Event types fixed to:
+  user_registered, scholarships_daily_update.
+- Admin-only buttons for:
+  Make webhook test (safe test email)
+  Daily digest run (same logic as scheduler)
+- Daily digest scheduler (APScheduler) + last-run persistence.
+- Scholarship analytics in admin with KPIs + charts (Chart.js).
+- Search bar UI improvements (RTL, professional styling).
+- Open-scholarships daily digest with date filtering and polished HTML.
+
+Big picture architecture
+- Flask is the source of truth and sends server-to-server webhooks to Make.
+- Make parses JSON (Tools -> JSON -> Parse JSON) and routes by event_title.
+- Email sending is handled by Make (Gmail module).
+- Daily digest runs inside Flask (scheduler) and can be triggered manually.
+- Analytics and digest are admin-only and protected by login + email check.
+
+Core data flow
+1) user_registered
+   - After DB commit on signup, Flask renders HTML and sends payload to Make.
+2) scholarships_daily_update
+   - Daily job finds open scholarships for today (Asia/Jerusalem),
+     builds HTML digest, and sends one webhook per interested user.
+   - If no open scholarships, sends only to the admin email.
+3) Make routes emails by event_title and uses html as the email body.
+
+Key system rules (contract)
+- Payload must always include top-level keys:
+  email, event_title, is_test, subject, html.
+- event_title must be exactly one of:
+  user_registered, scholarships_daily_update.
+- If is_test == true, email is forced to the admin email.
+- For daily update (real run), one webhook per target user.
+
+Daily digest logic (open/available)
+- Uses local date (Asia/Jerusalem).
+- Includes scholarship only if:
+  open_date <= today <= close_date.
+- Skips items with missing or unparseable dates.
+- Dates are parsed from Notion fields; format handling:
+  YYYY-MM-DD, DD/MM/YYYY, YYYY/MM/DD, and ISO date/time.
+
+HTML outputs
+- Signup email: template in templates/email_user_registered.html
+- Daily digest: inline HTML built in digest_service.py
+  with CTA buttons, open/close dates, and test banner.
+
+Main files changed/added
+- make_service.py (payload builder + notifier)
+- digest_service.py (daily digest logic + HTML)
+- models.py (DailyJobRun, ScholarshipEvent)
+- app.py (routes, scheduler, webhook calls)
+- templates/admin.html (admin buttons + analytics UI)
+- templates/email_user_registered.html (signup email)
+- static/styles.css (search bar + analytics UI)
+- requirements.txt (APScheduler, Chart.js via CDN)
+
+Key prompts that shaped the system
+- "Treat webhook URL and API key as secrets; use env vars."
+- "Use server-to-server Make webhook; JSON payload; do not block signup."
+- "Strict JSON contract: email, event_title, is_test, subject, html only."
+- "Test runs must never email real users; force email for tests."
+- "Daily digest: use open/close dates; skip unknowns."
+- "Admin button to trigger exact same daily digest logic."
+- "Make parses JSON explicitly; stable keys only."
+
+Notes
+- Scheduler runs daily at 16:00 local time when Flask is running.
+- Startup run checks once to avoid missed daily sends if app starts after 16:00.
+- Analytics uses current statuses and event tracking for trends.

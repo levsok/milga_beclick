@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">כרטיס משתמש</h2>
+    <p class="text-muted mb-0">ניהול נתוני משתמש והודעות מותאמות.</p>
+  </div>
+
+  <div class="card-soft p-4 mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-4">
+      {% if user.profile_image %}
+        <img src="{{ url_for('static', filename=user.profile_image) }}" alt="תמונת פרופיל" class="profile-avatar">
+      {% else %}
+        <div class="icon-badge"><i class="bi bi-person"></i></div>
+      {% endif %}
+      <div>
+        <h5 class="fw-bold mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+        <p class="text-muted mb-1">{{ user.email }}</p>
+        <p class="text-muted mb-0">{{ user.phone }} · נרשם: {{ user.created_at|datetime }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card-soft p-4 mb-4">
+        <h5 class="fw-bold mb-3">מלגות רלוונטיות למשתמש</h5>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>מלגה</th>
+                <th>ציון</th>
+                <th>סטטוס</th>
+                <th>התראות</th>
+                <th>עודכן</th>
+                <th>קישור</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in scholarships %}
+                <tr>
+                  <td>{{ item.scholarship_title }}</td>
+                  <td>{{ item.match_score }}</td>
+                  <td>{{ item.status }}</td>
+                  <td>{{ "כן" if item.alerts_enabled else "לא" }}</td>
+                  <td>{{ item.updated_at|datetime }}</td>
+                  <td>
+                    {% if item.scholarship_link %}
+                      <a href="{{ item.scholarship_link }}" target="_blank" rel="noopener">לינק</a>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="6" class="text-muted">אין מלגות רלוונטיות להצגה.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card-soft p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+          <h5 class="fw-bold mb-0">כל המלגות במערכת</h5>
+          <input type="text" class="form-control admin-search" id="adminScholarshipSearch" placeholder="חיפוש לפי שם מלגה">
+        </div>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>מלגה</th>
+                <th>סטטוס משתמש</th>
+                <th>התראות</th>
+                <th>עודכן</th>
+                <th>קישור</th>
+              </tr>
+            </thead>
+            <tbody id="adminScholarshipTable">
+              {% for item in all_scholarships %}
+                <tr>
+                  <td>{{ item.title }}</td>
+                  <td>{{ item.status }}</td>
+                  <td>
+                    {% if item.alerts_enabled is none %}
+                      -
+                    {% else %}
+                      {{ "כן" if item.alerts_enabled else "לא" }}
+                    {% endif %}
+                  </td>
+                  <td>{% if item.updated_at %}{{ item.updated_at|datetime }}{% else %}-{% endif %}</td>
+                  <td>
+                    {% if item.url %}
+                      <a href="{{ item.url }}" target="_blank" rel="noopener">לינק</a>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="5" class="text-muted">אין מלגות להצגה.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card-soft p-4 mb-4">
+        <h5 class="fw-bold mb-3">התעניינות במלגות</h5>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>שם המלגה</th>
+                <th>תחום עניין</th>
+                <th>הוגשה בקשה?</th>
+                <th>הערות</th>
+                <th>נשלח</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for submission in submissions %}
+                <tr>
+                  <td>{{ submission.scholarship_name }}</td>
+                  <td>{{ submission.interest_area }}</td>
+                  <td>{{ "כן" if submission.has_submitted else "לא" }}</td>
+                  <td>{{ submission.notes or "-" }}</td>
+                  <td>{{ submission.created_at|datetime }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="5" class="text-muted">אין נתונים להצגה.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card-soft p-4">
+        <h5 class="fw-bold mb-3">מסמכים</h5>
+        <p class="text-muted mb-0">ניהול מסמכים אינו פעיל כרגע.</p>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card-soft p-4 mb-4">
+        <h5 class="fw-bold mb-3">שליחת הודעה למשתמש</h5>
+        <form method="post" novalidate>
+          {{ message_form.hidden_tag() }}
+          <div class="mb-3">
+            {{ message_form.title.label(class="form-label") }}
+            {{ message_form.title(class="form-control") }}
+            {% for error in message_form.title.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ message_form.body.label(class="form-label") }}
+            {{ message_form.body(class="form-control", rows="4") }}
+            {% for error in message_form.body.errors %}
+              <div class="error-text">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <button type="submit" class="btn btn-primary w-100">{{ message_form.submit.label.text }}</button>
+        </form>
+      </div>
+
+      <div class="card-soft p-4">
+        <h5 class="fw-bold mb-3">הודעות שנשלחו</h5>
+        <ul class="list-unstyled mb-0">
+          {% for note in notifications %}
+            <li class="mb-3">
+              <div class="fw-semibold">{{ note.title }}</div>
+              <div class="text-muted small">{{ note.sender_label }} · {{ note.created_at|datetime }}</div>
+              <div class="text-muted">{{ note.body }}</div>
+            </li>
+          {% else %}
+            <li class="text-muted">אין הודעות להצגה.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var input = document.getElementById("adminScholarshipSearch");
+      var table = document.getElementById("adminScholarshipTable");
+      if (!input || !table) {
+        return;
+      }
+      input.addEventListener("input", function () {
+        var term = input.value.trim().toLowerCase();
+        Array.from(table.querySelectorAll("tr")).forEach(function (row) {
+          var titleCell = row.querySelector("td");
+          if (!titleCell) {
+            return;
+          }
+          var text = titleCell.textContent.toLowerCase();
+          row.style.display = text.includes(term) ? "" : "none";
+        });
+      });
+    })();
+  </script>
+{% endblock %}

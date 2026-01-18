@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">אלה המלגות המתאימות שמצאנו לך</h2>
+      <p class="text-muted mb-0">כל מלגה מוצגת עם סטטוס והתראות כדי שתשמור שליטה.</p>
+    </div>
+    <form method="post" action="{{ url_for('refresh_my_scholarships') }}">
+      {{ refresh_form.hidden_tag() }}
+      <button type="submit" class="btn btn-outline-primary">{{ refresh_form.submit.label.text }}</button>
+    </form>
+  </div>
+
+  <div id="thinking" class="thinking-overlay" aria-hidden="true">
+    <div class="card-soft p-4 text-center">
+      <div class="spinner-border text-info" role="status"></div>
+      <p class="mt-3 mb-0">מעבדים התאמות חכמות עבורך...</p>
+    </div>
+  </div>
+
+  {% if scholarships %}
+    <div class="scholarship-list">
+      {% for item in scholarships %}
+        <div class="scholarship-card">
+          <div class="card-header-row">
+            <div>
+              <h5 class="fw-bold mb-1">{{ item.title }}</h5>
+              <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="match-indicator match-{{ item.level }}">
+                  {% if item.level == "high" %}התאמה גבוהה{% elif item.level == "medium" %}התאמה בינונית{% else %}התאמה נמוכה{% endif %}
+                </span>
+                <span class="text-muted small">ציון: {{ item.score }}</span>
+              </div>
+            </div>
+            {% if item.link %}
+              <a class="btn btn-outline-primary btn-sm" href="{{ item.link }}" target="_blank" rel="noopener">לקישור</a>
+            {% endif %}
+          </div>
+          <div class="card-body-section">
+            {% if item.reasons %}
+              <ul class="match-reasons">
+                {% for reason in item.reasons[:4] %}
+                  <li>{{ reason }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+          <form method="post" class="card-actions">
+            {{ update_form.csrf_token }}
+            {{ update_form.scholarship_id(value=item.id) }}
+            <div class="row g-3 align-items-center">
+              <div class="col-md-4">
+                <label class="form-label">סטטוס</label>
+                <select class="form-select" name="status">
+                  {% for value, label in update_form.status.choices %}
+                    <option value="{{ value }}" {% if value == item.status %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-5">
+                <div class="form-check mt-4">
+                  <input class="form-check-input" type="checkbox" name="alerts_enabled" id="alerts-{{ item.id }}" {% if item.alerts_enabled %}checked{% endif %}>
+                  <label class="form-check-label" for="alerts-{{ item.id }}">אשמח לקבל התראות על מלגה זו</label>
+                </div>
+              </div>
+              <div class="col-md-3 text-start">
+                <button type="submit" class="btn btn-primary w-100">עדכן</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">אין עדיין התאמות. מלא את השאלון כדי לקבל המלצות.</div>
+  {% endif %}
+
+  {% if refreshed %}
+    <script>
+      (function () {
+        var overlay = document.getElementById("thinking");
+        overlay.classList.add("is-visible");
+        setTimeout(function () {
+          overlay.classList.remove("is-visible");
+        }, 1500);
+      })();
+    </script>
+  {% endif %}
+{% endblock %}

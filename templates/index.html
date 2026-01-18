@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="hero mb-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <h1 class="hero-title">מילגה בקליק</h1>
+        <p class="hero-subtitle">מנוע חכם שמרכז עבורך הזדמנויות מלגה, מוודא שאתה עומד בתנאים ומחזיר אותך למסלול.</p>
+        <p class="hero-subtitle">מערכת חכמה שמרכזת עבורך מידע על מלגות, עוקבת אחרי מועדים חשובים,<br>ושואפת למנוע פספוס של הזדמנויות כלכליות לסטודנטים.</p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}">הרשמה</a>
+          <a class="btn btn-outline-primary btn-lg" href="{{ url_for('login') }}">התחברות</a>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="hero-image-wrap mb-4">
+          <img src="{{ url_for('static', filename='scholarship_images/frontpage image.png') }}" alt="תמונת דף הבית" class="hero-image" loading="lazy">
+        </div>
+        <div class="feature-stack">
+          <div class="feature-card">
+            <div class="icon-badge mb-3">ℹ️</div>
+            <h5 class="fw-bold">מידע על כל המלגות!</h5>
+            <p class="mb-0 text-muted">ריכוז מסודר של מלגות ממקורות שונים, במקום אחד ברור ונוח.</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon-badge mb-3">🔔</div>
+            <h5 class="fw-bold">תזכורות אוטומטיות והתראות בזמן אמת!</h5>
+            <p class="mb-0 text-muted">המערכת תעקוב אחרי מועדים חשובים ותעדכן אותך לפני שיהיה מאוחר.</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon-badge mb-3">🎯</div>
+            <h5 class="fw-bold">מתאימים בשבילך את המלגה שלך!</h5>
+            <p class="mb-0 text-muted">בעתיד – התאמה אישית לפי נתונים ושאלון חכם.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-card mb-5">
+    <h2 class="fw-bold">החזון שלנו</h2>
+    <p class="mb-0 text-muted">המערכת פותחה כחלק מפרויקט בקורס יסודות מערכות מידע,<br>במטרה ליצור פתרון אמיתי לבעיה אמיתית של סטודנטים –<br>עומס בירוקרטי, חוסר סדר ופספוס מלגות.<br>המטרה שלנו היא לבנות מערכת חכמה, נגישה ואחראית,<br>שתוכל בעתיד לשרת אלפי סטודנטים.</p>
+  </section>
+
+  <footer class="landing-footer">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#termsModal">תקנון שימוש</a>
+      <span class="text-muted">יצירת קשר: levsok@post.bgu.ac.il</span>
+      <button type="button" class="btn btn-link p-0 footer-link" id="cookie-settings-btn">הגדרות Cookies</button>
+    </div>
+  </footer>
+
+  <div class="modal fade" id="termsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">תקנון שימוש</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-muted">
+          <p>המערכת נועדה לריכוז והצגת מידע על מלגות בלבד.</p>
+          <p>המידע אינו מהווה התחייבות לקבלת מלגה.</p>
+          <p>אין באמור הבטחה, ייעוץ או אחריות לתוצאה כלשהי.</p>
+          <p>הגשת בקשות למלגות ואישורן נתונים לשיקול הגופים המעניקים בלבד.</p>
+          <p class="mb-0">השימוש במערכת הוא על אחריות המשתמש.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cookie-banner" id="cookie-banner" role="dialog" aria-live="polite">
+    <p class="mb-2">האתר עושה שימוש בקובצי Cookies לצורך תפעול, אבטחה ושיפור חוויית המשתמש.</p>
+    <div class="d-flex flex-wrap gap-2">
+      <button class="btn btn-primary btn-sm" id="cookie-accept">מאשר</button>
+      <button class="btn btn-outline-primary btn-sm" id="cookie-decline">דחייה</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var banner = document.getElementById("cookie-banner");
+      var acceptBtn = document.getElementById("cookie-accept");
+      var declineBtn = document.getElementById("cookie-decline");
+      var settingsBtn = document.getElementById("cookie-settings-btn");
+
+      function getCookie(name) {
+        var value = "; " + document.cookie;
+        var parts = value.split("; " + name + "=");
+        if (parts.length === 2) {
+          return parts.pop().split(";").shift();
+        }
+        return null;
+      }
+
+      function setCookie(name, value, days) {
+        var expires = new Date();
+        expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+        var secure = window.location.protocol === "https:" ? "; Secure" : "";
+        document.cookie =
+          name +
+          "=" +
+          value +
+          "; Expires=" +
+          expires.toUTCString() +
+          "; Path=/" +
+          "; SameSite=Lax" +
+          secure;
+      }
+
+      function showBanner() {
+        banner.classList.add("is-visible");
+      }
+
+      function hideBanner() {
+        banner.classList.remove("is-visible");
+      }
+
+      if (!getCookie("cookies_accepted")) {
+        showBanner();
+      }
+
+      acceptBtn.addEventListener("click", function () {
+        setCookie("cookies_accepted", "true", 180);
+        hideBanner();
+      });
+
+      declineBtn.addEventListener("click", function () {
+        setCookie("cookies_accepted", "false", 30);
+        hideBanner();
+      });
+
+      settingsBtn.addEventListener("click", function () {
+        showBanner();
+      });
+    })();
+  </script>
+{% endblock %}

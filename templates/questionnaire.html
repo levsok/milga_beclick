@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">שאלון התאמה אישי</h2>
+    <p class="text-muted mb-0">ענה על כמה שאלות קצרות ונמצא עבורך מלגות מתאימות.</p>
+  </div>
+
+  {% if has_existing %}
+    <div class="alert alert-info">
+      כבר מילאת שאלון. אפשר לעדכן פרטים ולרענן התאמות.
+      <div class="mt-2">
+        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('my_scholarships') }}">לצפייה בהתאמות שלי</a>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="card-soft p-4">
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="row g-3">
+        <div class="col-md-6">
+          {{ form.study_status.label(class="form-label") }}
+          {{ form.study_status(class="form-select") }}
+          {% for error in form.study_status.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          {{ form.study_field.label(class="form-label") }}
+          {{ form.study_field(class="form-select") }}
+          {% for error in form.study_field.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          {{ form.institution.label(class="form-label") }}
+          {{ form.institution(class="form-control") }}
+          {% for error in form.institution.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          {{ form.military_status.label(class="form-label") }}
+          {{ form.military_status(class="form-select") }}
+          {% for error in form.military_status.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-12">
+          {{ form.populations.label(class="form-label") }}
+          {{ form.populations(class="form-select", multiple=true, size="4") }}
+          <div class="helper-text">אפשר לבחור יותר מאפשרות אחת.</div>
+          {% for error in form.populations.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          {{ form.work_status.label(class="form-label") }}
+          {{ form.work_status(class="form-select") }}
+          {% for error in form.work_status.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          {{ form.volunteer_willingness.label(class="form-label") }}
+          {{ form.volunteer_willingness(class="form-select") }}
+          {% for error in form.volunteer_willingness.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          {{ form.scholarship_duration_preference.label(class="form-label") }}
+          {{ form.scholarship_duration_preference(class="form-select") }}
+          {% for error in form.scholarship_duration_preference.errors %}
+            <div class="error-text">{{ error }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mt-4">{{ form.submit.label.text }}</button>
+    </form>
+  </div>
+{% endblock %}

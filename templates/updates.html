@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">עדכונים</h2>
+      <p class="text-muted mb-0">כאן תראה הודעות ועדכונים חשובים.</p>
+    </div>
+    <form method="post" action="{{ url_for('mark_all_updates') }}">
+      {{ mark_all_form.hidden_tag() }}
+      <button type="submit" class="btn btn-outline-primary">{{ mark_all_form.submit.label.text }}</button>
+    </form>
+  </div>
+
+  {% if notifications %}
+    <div class="scholarship-list">
+      {% for note in notifications %}
+        <div class="scholarship-card {% if not note.read_at %}notification-unread{% endif %}">
+          <div class="card-header-row">
+            <div>
+              <h5 class="fw-bold mb-1">{{ note.title }}</h5>
+              <div class="text-muted small">{{ note.sender_label }} · {{ note.created_at|datetime }}</div>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('updates', open=note.id) }}">פתיחה</a>
+          </div>
+          {% if open_id and open_id == note.id|string %}
+            <div class="card-body-section">
+              <p class="mb-0">{{ note.body }}</p>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">אין עדכונים להצגה כרגע.</div>
+  {% endif %}
+{% endblock %}

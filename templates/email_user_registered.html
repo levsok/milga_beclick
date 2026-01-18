@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <title>ברוכים הבאים</title>
+  </head>
+  <body style="font-family: Assistant, Arial, sans-serif; direction: rtl; background-color: #f8fafc; padding: 24px;">
+    <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0;">
+      {% if is_test %}
+        <div style="font-size: 12px; color: #b91c1c; margin-bottom: 12px;">בדיקת מערכת</div>
+      {% endif %}
+      <h2 style="margin: 0 0 12px; color: #0f172a;">ברוך/ה הבא/ה למערכת המלגות</h2>
+      <p style="margin: 0 0 12px; color: #334155;">
+        היי {{ user.first_name or "שם פרטי" }}, ההרשמה שלך נקלטה בהצלחה.
+      </p>
+      <p style="margin: 0 0 16px; color: #334155;">
+        אפשר להתחבר למערכת ולהתחיל למצוא מלגות מתאימות עבורך.
+      </p>
+      <div style="background: #e0f2fe; padding: 12px 16px; border-radius: 12px; color: #0f172a;">
+        אימייל: {{ user.email }}
+      </div>
+    </div>
+  </body>
+</html>
