@@ -1,7 +1,8 @@
 import os
 
 import requests
-from dotenv import load_dotenv
+
+from env_utils import load_environment
 
 
 NOTION_VERSION = "2022-06-28"
@@ -137,7 +138,7 @@ def _find_best_url(props):
 
 
 def fetch_notion_pages_raw():
-    load_dotenv(override=False)
+    load_environment()
     token = os.getenv("NOTION_TOKEN")
     database_id = os.getenv("NOTION_DATABASE_ID")
     print(
@@ -196,7 +197,7 @@ def fetch_notion_pages_raw():
 
 
 def fetch_scholarships():
-    load_dotenv(override=False)
+    load_environment()
     token = os.getenv("NOTION_TOKEN")
     database_id = os.getenv("NOTION_DATABASE_ID")
     print(
