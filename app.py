@@ -1,10 +1,11 @@
 import os
 import json
 from pathlib import Path
-from dotenv import load_dotenv
 from io import BytesIO
 
-load_dotenv()
+from env_utils import load_environment
+
+load_environment()
 print(
     f"[debug] NOTION_TOKEN loaded: {bool(os.getenv('NOTION_TOKEN'))}, "
     f"NOTION_DATABASE_ID present: {bool(os.getenv('NOTION_DATABASE_ID'))}"
