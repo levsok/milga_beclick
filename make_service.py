@@ -7,7 +7,6 @@ import requests
 
 logger = logging.getLogger(__name__)
 ALLOWED_EVENTS = {"user_registered", "scholarships_daily_update"}
-TEST_EMAIL = os.getenv("MAKE_TEST_EMAIL", "test@example.com")
 
 
 def mask_email(email):
@@ -29,7 +28,7 @@ def build_make_payload(email, event_title, html, subject, is_test=False):
     if not html or not str(html).strip():
         raise ValueError("html must be non-empty")
 
-    resolved_email = TEST_EMAIL if is_test else email
+    resolved_email = email
     if not resolved_email or not str(resolved_email).strip():
         raise ValueError("email must be non-empty")
     return {

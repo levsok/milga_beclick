@@ -215,12 +215,30 @@ def run_daily_scholarships_digest(force=False, is_test=False):
         )
         if not users and not is_test:
             logger.info("Digest skipped: no interested users")
-        else:
-            target_users = users if users and not is_test else [None]
-            for user in target_users:
-                subject, digest_html = build_digest_message(open_items, user, is_test=is_test)
+        elif is_test:
+            if not ADMIN_EMAIL:
+                logger.warning(
+                    "Skipping test digest email because ADMIN_EMAIL is missing."
+                )
+            else:
+                subject, digest_html = build_digest_message(
+                    open_items, None, is_test=is_test
+                )
                 payload = build_make_payload(
-                    email=user.email if user else "",
+                    email=ADMIN_EMAIL,
+                    event_title="scholarships_daily_update",
+                    html=digest_html,
+                    subject=subject,
+                    is_test=is_test,
+                )
+                notify_make(payload)
+        else:
+            for user in users:
+                subject, digest_html = build_digest_message(
+                    open_items, user, is_test=is_test
+                )
+                payload = build_make_payload(
+                    email=user.email,
                     event_title="scholarships_daily_update",
                     html=digest_html,
                     subject=subject,
