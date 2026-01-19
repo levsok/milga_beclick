@@ -246,9 +246,9 @@ def create_app():
                 return redirect(url_for("dashboard"))
 
             if not attempt:
-                attempt = LoginAttempt(email=email, ip=ip)
+                attempt = LoginAttempt(email=email, ip=ip, attempts=0)
                 db.session.add(attempt)
-            attempt.attempts += 1
+            attempt.attempts = (attempt.attempts or 0) + 1
             attempt.last_failed_at = now
             if attempt.attempts >= LOCKOUT_THRESHOLD:
                 attempt.locked_until = now + LOCKOUT_WINDOW
