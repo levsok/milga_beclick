@@ -342,6 +342,9 @@ a:hover {
   flex-direction: row-reverse;
   gap: 18px;
   align-items: stretch;
+  direction: rtl;
+  text-align: right;
+  overflow: hidden;
 }
 
 .card-header-row {
@@ -350,6 +353,7 @@ a:hover {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .scholarship-card:hover,
@@ -360,6 +364,21 @@ a:hover {
 
 .scholarship-card-body {
   flex: 1;
+  min-width: 0;
+}
+
+.scholarship-card-body,
+.scholarship-field,
+.scholarship-field .field-value,
+.card-header-row,
+.match-reasons,
+.match-reasons li,
+.card-actions-grid {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.card-header-row > * {
   min-width: 0;
 }
 
@@ -597,18 +616,51 @@ a:hover {
 
 .match-reasons {
   margin: 0;
-  padding-right: 18px;
+  padding: 0;
   color: var(--muted);
+  direction: rtl;
+  text-align: right;
+  list-style-position: inside;
+  display: grid;
+  gap: 6px;
+  line-height: 1.6;
 }
 
 .card-body-section {
   margin-top: 14px;
 }
 
+.match-reasons-wrapper {
+  margin-top: 10px;
+}
+
 .card-actions {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #e2e8f0;
+}
+
+.card-actions-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.3fr) minmax(140px, 0.9fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.card-actions-field {
+  min-width: 0;
+}
+
+.card-actions-alerts .form-check {
+  margin: 0;
+}
+
+.card-actions-submit {
+  text-align: left;
+}
+
+.scholarship-link {
+  white-space: nowrap;
 }
 
 .profile-avatar {
@@ -687,6 +739,20 @@ a:hover {
     left: 16px;
     right: 16px;
     max-width: none;
+  }
+
+  .card-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-actions-grid {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .card-actions-submit {
+    text-align: right;
   }
 }
 
