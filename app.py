@@ -113,6 +113,11 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    logger.info(
+        "Make webhook configuration: url_configured=%s api_key_configured=%s",
+        bool(os.getenv("MAKE_WEBHOOK_URL")),
+        bool(os.getenv("MAKE_WEBHOOK_API_KEY")),
+    )
 
     db.init_app(app)
 
@@ -207,6 +212,16 @@ def create_app():
     @app.route("/")
     def index():
         return render_template("index.html")
+
+    @app.route("/health")
+    def health_check():
+        return jsonify(
+            make_configured=bool(os.getenv("MAKE_WEBHOOK_URL"))
+            and bool(os.getenv("MAKE_WEBHOOK_API_KEY")),
+            notion_configured=bool(os.getenv("NOTION_TOKEN"))
+            and bool(os.getenv("NOTION_DATABASE_ID")),
+            admin_email_configured=bool(ADMIN_EMAIL_NORMALIZED),
+        )
 
     @app.route("/register", methods=["GET", "POST"])
     def register():
