@@ -8,6 +8,20 @@ logger = logging.getLogger(__name__)
 ALLOWED_EVENTS = {"user_registered", "scholarships_daily_update"}
 TEST_EMAIL = os.getenv("MAKE_TEST_EMAIL", "test@example.com")
 
+
+def mask_email(email):
+    if not email:
+        return ""
+    email = str(email)
+    if "@" not in email:
+        return "***"
+    local_part, domain = email.split("@", 1)
+    if not local_part:
+        return f"***@{domain}"
+    visible = local_part[:4]
+    return f"{visible}***@{domain}"
+
+
 def build_make_payload(email, event_title, html, subject, is_test=False):
     if event_title not in ALLOWED_EVENTS:
         raise ValueError(f"Invalid event_title: {event_title}")
@@ -37,6 +51,13 @@ def notify_make(payload, timeout_seconds=7):
         "Content-Type": "application/json",
         "x-make-apikey": api_key,
     }
+    event_title = payload.get("event_title") if isinstance(payload, dict) else None
+    masked_email = mask_email(payload.get("email") if isinstance(payload, dict) else None)
+    logger.info(
+        "Sending Make webhook event: event_title=%s email=%s",
+        event_title,
+        masked_email,
+    )
     try:
         response = requests.post(
             webhook_url,
@@ -44,11 +65,24 @@ def notify_make(payload, timeout_seconds=7):
             headers=headers,
             timeout=timeout_seconds,
         )
+        truncated_body = (response.text or "")[:200]
+        logger.info(
+            "Make webhook response: event_title=%s email=%s status=%s body=%s",
+            event_title,
+            masked_email,
+            response.status_code,
+            truncated_body,
+        )
         if not response.ok:
             logger.error(
                 "Make webhook failed: status=%s body=%s",
                 response.status_code,
-                response.text,
+                truncated_body,
             )
     except requests.exceptions.RequestException as exc:
-        logger.error("Make webhook error: %s", exc)
+        logger.error(
+            "Make webhook error: event_title=%s email=%s error=%s",
+            event_title,
+            masked_email,
+            exc,
+        )
