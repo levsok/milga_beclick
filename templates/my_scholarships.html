@@ -22,7 +22,7 @@
     <div class="scholarship-list">
       {% for item in scholarships %}
         <div class="scholarship-card">
-          <div class="card-header-row">
+          <div class="card-header-row scholarship-card-header">
             <div>
               <h5 class="fw-bold mb-1">{{ item.title }}</h5>
               <div class="d-flex flex-wrap align-items-center gap-2">
@@ -33,10 +33,10 @@
               </div>
             </div>
             {% if item.link %}
-              <a class="btn btn-outline-primary btn-sm" href="{{ item.link }}" target="_blank" rel="noopener">לקישור</a>
+              <a class="btn btn-outline-primary btn-sm scholarship-link" href="{{ item.link }}" target="_blank" rel="noopener">לעמוד המלגה</a>
             {% endif %}
           </div>
-          <div class="card-body-section">
+          <div class="card-body-section match-reasons-wrapper">
             {% if item.reasons %}
               <ul class="match-reasons">
                 {% for reason in item.reasons[:4] %}
@@ -48,8 +48,8 @@
           <form method="post" class="card-actions">
             {{ update_form.csrf_token }}
             {{ update_form.scholarship_id(value=item.id) }}
-            <div class="row g-3 align-items-center">
-              <div class="col-md-4">
+            <div class="card-actions-grid">
+              <div class="card-actions-field">
                 <label class="form-label">סטטוס</label>
                 <select class="form-select" name="status">
                   {% for value, label in update_form.status.choices %}
@@ -57,13 +57,13 @@
                   {% endfor %}
                 </select>
               </div>
-              <div class="col-md-5">
-                <div class="form-check mt-4">
+              <div class="card-actions-field card-actions-alerts">
+                <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="alerts_enabled" id="alerts-{{ item.id }}" {% if item.alerts_enabled %}checked{% endif %}>
                   <label class="form-check-label" for="alerts-{{ item.id }}">אשמח לקבל התראות על מלגה זו</label>
                 </div>
               </div>
-              <div class="col-md-3 text-start">
+              <div class="card-actions-field card-actions-submit">
                 <button type="submit" class="btn btn-primary w-100">עדכן</button>
               </div>
             </div>

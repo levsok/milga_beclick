@@ -90,6 +90,14 @@ def _resolve_database_uri():
         if database_url.startswith("postgres://"):
             return database_url.replace("postgres://", "postgresql://", 1)
         return database_url
+    sqlite_path = os.getenv("SQLITE_DB_PATH")
+    render_disk = os.getenv("RENDER_DISK_PATH", "/var/data")
+    if os.getenv("RENDER") == "true" and not sqlite_path:
+        sqlite_path = str(Path(render_disk) / "scholarship_autopilot.db")
+        logger.info("Using Render persistent SQLite database at %s", sqlite_path)
+    if sqlite_path:
+        resolved = Path(sqlite_path).expanduser().resolve()
+        return f"sqlite:///{resolved}"
     logger.warning(
         "DATABASE_URL is not set; using local SQLite database (not suitable for production)."
     )
