@@ -97,6 +97,12 @@ def _resolve_database_uri():
         logger.info("Using Render persistent SQLite database at %s", sqlite_path)
     if sqlite_path:
         resolved = Path(sqlite_path).expanduser().resolve()
+        try:
+            resolved.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            logger.warning(
+                "Unable to ensure SQLite directory exists at %s: %s", resolved.parent, exc
+            )
         return f"sqlite:///{resolved}"
     logger.warning(
         "DATABASE_URL is not set; using local SQLite database (not suitable for production)."
