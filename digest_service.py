@@ -14,7 +14,9 @@ LOCAL_TZ = ZoneInfo("Asia/Jerusalem")
 JOB_NAME = "scholarships_digest"
 DAILY_RUN_TIME = time(hour=16, minute=0)
 INTERESTED_STATUSES = ("מעוניין", "הגשתי", "התקבלתי")
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+if not ADMIN_EMAIL:
+    logger.warning("ADMIN_EMAIL is not set; admin notifications will be skipped.")
 OPEN_FIELD_NAMES = [
     "תאריך פתיחה",
     "מועד פתיחה",
@@ -193,14 +195,17 @@ def run_daily_scholarships_digest(force=False, is_test=False):
 
     if not open_items:
         subject, digest_html = build_digest_message(open_items, None, is_test=is_test)
-        payload = build_make_payload(
-            email=ADMIN_EMAIL,
-            event_title="scholarships_daily_update",
-            html=digest_html,
-            subject=subject,
-            is_test=is_test,
-        )
-        notify_make(payload)
+        if ADMIN_EMAIL:
+            payload = build_make_payload(
+                email=ADMIN_EMAIL,
+                event_title="scholarships_daily_update",
+                html=digest_html,
+                subject=subject,
+                is_test=is_test,
+            )
+            notify_make(payload)
+        else:
+            logger.warning("Skipping admin digest email because ADMIN_EMAIL is missing.")
     else:
         users = (
             User.query.join(UserScholarship, UserScholarship.user_id == User.id)
