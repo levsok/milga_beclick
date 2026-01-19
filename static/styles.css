@@ -338,13 +338,16 @@ a:hover {
   box-shadow: var(--shadow);
   padding: 22px 24px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  display: flex;
-  flex-direction: row-reverse;
-  gap: 18px;
-  align-items: stretch;
-  direction: rtl;
   text-align: right;
   overflow: hidden;
+}
+
+.scholarship-card-media-layout {
+  display: flex;
+  flex-direction: row;
+  direction: ltr;
+  gap: 18px;
+  align-items: stretch;
 }
 
 .card-header-row {
@@ -399,7 +402,7 @@ a:hover {
 }
 
 @media (max-width: 768px) {
-  .scholarship-card {
+  .scholarship-card-media-layout {
     flex-direction: column;
   }
 
