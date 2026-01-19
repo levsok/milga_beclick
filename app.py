@@ -91,11 +91,6 @@ def _resolve_database_uri():
             return database_url.replace("postgres://", "postgresql://", 1)
         return database_url
     sqlite_path = os.getenv("SQLITE_DB_PATH")
-    render_disk = os.getenv("RENDER_DISK_PATH", "/var/data")
-    render_flag = os.getenv("RENDER") == "true" or os.getenv("RENDER_SERVICE_ID")
-    if not sqlite_path and (render_flag or Path(render_disk).exists()):
-        sqlite_path = str(Path(render_disk) / "scholarship_autopilot.db")
-        logger.info("Using Render persistent SQLite database at %s", sqlite_path)
     if sqlite_path:
         resolved = Path(sqlite_path).expanduser().resolve()
         try:
