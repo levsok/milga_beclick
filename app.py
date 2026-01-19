@@ -1,15 +1,23 @@
 import os
 import json
+import logging
 from pathlib import Path
 from io import BytesIO
 
 from env_utils import load_environment
 
 load_environment()
-print(
-    f"[debug] NOTION_TOKEN loaded: {bool(os.getenv('NOTION_TOKEN'))}, "
-    f"NOTION_DATABASE_ID present: {bool(os.getenv('NOTION_DATABASE_ID'))}"
-)
+logger = logging.getLogger(__name__)
+
+if not os.getenv("NOTION_TOKEN") or not os.getenv("NOTION_DATABASE_ID"):
+    logger.warning(
+        "Missing NOTION_TOKEN or NOTION_DATABASE_ID; Notion integrations will be disabled."
+    )
+
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+ADMIN_EMAIL_NORMALIZED = ADMIN_EMAIL.strip().lower() if ADMIN_EMAIL else None
+if not ADMIN_EMAIL_NORMALIZED:
+    logger.warning("ADMIN_EMAIL is not set; admin access will be disabled.")
 from datetime import datetime, timedelta
 
 from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, url_for
@@ -54,7 +62,6 @@ from notion_service import fetch_notion_pages_raw, fetch_scholarships
 
 LOCKOUT_THRESHOLD = 8
 LOCKOUT_WINDOW = timedelta(minutes=5)
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
 EVENT_INTEREST = "interest_event"
 EVENT_APPLICATION = "application_event"
 EVENT_ACCEPTANCE = "acceptance_event"
@@ -77,12 +84,32 @@ SCHOLARSHIP_IMAGE_KEYWORDS = [
 ]
 
 
+def _resolve_database_uri():
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        if database_url.startswith("postgres://"):
+            return database_url.replace("postgres://", "postgresql://", 1)
+        return database_url
+    logger.warning(
+        "DATABASE_URL is not set; using local SQLite database (not suitable for production)."
+    )
+    return "sqlite:///scholarship_autopilot.db"
+
+
+def is_admin_user(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if not ADMIN_EMAIL_NORMALIZED:
+        return False
+    if not user.email:
+        return False
+    return user.email.strip().lower() == ADMIN_EMAIL_NORMALIZED
+
+
 def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-change-me")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL", "sqlite:///scholarship_autopilot.db"
-    )
+    app.config["SQLALCHEMY_DATABASE_URI"] = _resolve_database_uri()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
@@ -113,8 +140,7 @@ def create_app():
                 .count()
             )
         return {
-            "is_admin": current_user.is_authenticated
-            and current_user.email == ADMIN_EMAIL,
+            "is_admin": is_admin_user(current_user),
             "unread_notifications": unread_count,
         }
 
@@ -616,7 +642,7 @@ def create_app():
     @app.route("/admin")
     @login_required
     def admin():
-        if current_user.email != ADMIN_EMAIL:
+        if not is_admin_user(current_user):
             abort(403)
         users = User.query.order_by(User.created_at.desc()).all()
         inquiries = Inquiry.query.order_by(Inquiry.created_at.desc()).all()
@@ -636,7 +662,7 @@ def create_app():
     @app.route("/admin/test-make", methods=["POST"])
     @login_required
     def admin_test_make():
-        if current_user.email != ADMIN_EMAIL:
+        if not is_admin_user(current_user):
             abort(403)
         test_html = render_template(
             "email_user_registered.html",
@@ -657,7 +683,7 @@ def create_app():
     @app.route("/admin/run-digest", methods=["POST"])
     @login_required
     def admin_run_digest():
-        if current_user.email != ADMIN_EMAIL:
+        if not is_admin_user(current_user):
             abort(403)
         result = run_daily_scholarships_digest(force=True, is_test=True)
         if result.get("skipped"):
@@ -669,7 +695,7 @@ def create_app():
     @app.route("/admin/scholarships/<scholarship_id>/analytics")
     @login_required
     def admin_scholarship_analytics(scholarship_id):
-        if current_user.email != ADMIN_EMAIL:
+        if not is_admin_user(current_user):
             abort(403)
         days = request.args.get("days", "all")
         counts = {
@@ -742,7 +768,7 @@ def create_app():
     @app.route("/admin/users/<int:user_id>", methods=["GET", "POST"])
     @login_required
     def admin_user_profile(user_id):
-        if current_user.email != ADMIN_EMAIL:
+        if not is_admin_user(current_user):
             abort(403)
         user = User.query.get_or_404(user_id)
         message_form = AdminMessageForm()
@@ -808,7 +834,7 @@ def create_app():
     @app.route("/admin/export/users")
     @login_required
     def admin_export_users():
-        if current_user.email != ADMIN_EMAIL:
+        if not is_admin_user(current_user):
             abort(403)
         from openpyxl import Workbook
         users = User.query.order_by(User.id).all()
