@@ -679,6 +679,11 @@ def create_app():
     def admin_test_make():
         if not is_admin_user(current_user):
             abort(403)
+        make_configured = bool(os.getenv("MAKE_WEBHOOK_URL")) and bool(
+            os.getenv("MAKE_WEBHOOK_API_KEY")
+        )
+        print("[MAKE] test endpoint called")
+        print("[MAKE] make_configured:", make_configured)
         test_html = render_template(
             "email_user_registered.html",
             user=current_user,
