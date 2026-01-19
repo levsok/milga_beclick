@@ -1,5 +1,6 @@
 import logging
 import os
+from urllib.parse import urlparse
 
 import requests
 
@@ -47,6 +48,9 @@ def notify_make(payload, timeout_seconds=7):
         logger.warning("Make webhook not configured; skipping event")
         return
 
+    parsed_url = urlparse(webhook_url)
+    print("[MAKE] posting to:", parsed_url.netloc)
+
     headers = {
         "Content-Type": "application/json",
         "x-make-apikey": api_key,
@@ -65,24 +69,29 @@ def notify_make(payload, timeout_seconds=7):
             headers=headers,
             timeout=timeout_seconds,
         )
-        truncated_body = (response.text or "")[:200]
-        logger.info(
-            "Make webhook response: event_title=%s email=%s status=%s body=%s",
-            event_title,
-            masked_email,
-            response.status_code,
-            truncated_body,
-        )
-        if not response.ok:
-            logger.error(
-                "Make webhook failed: status=%s body=%s",
-                response.status_code,
-                truncated_body,
-            )
     except requests.exceptions.RequestException as exc:
+        print("[MAKE] exception:", exc)
         logger.error(
             "Make webhook error: event_title=%s email=%s error=%s",
             event_title,
             masked_email,
             exc,
+        )
+        return
+
+    truncated_body = (response.text or "")[:200]
+    print("[MAKE] status:", response.status_code)
+    print("[MAKE] body:", truncated_body)
+    logger.info(
+        "Make webhook response: event_title=%s email=%s status=%s body=%s",
+        event_title,
+        masked_email,
+        response.status_code,
+        truncated_body,
+    )
+    if not response.ok:
+        logger.error(
+            "Make webhook failed: status=%s body=%s",
+            response.status_code,
+            truncated_body,
         )
